@@ -1,99 +1,89 @@
 import streamlit as st
-from pathlib import Path
-from typing import List
-
+from io import BytesIO
 from core.extractor import extract_texts
 from openai import OpenAI
-
+from gtts import gTTS
 
 st.set_page_config(page_title="AI Audiobook Generator", page_icon="🎧")
-
 st.title("🎧 AI Audiobook Generator")
 st.write(
-    "Upload PDF, DOCX or TXT files, extract the text, and optionally rewrite it "
-    "into audiobook-style narration using an LLM."
+    "Upload PDF, DOCX or TXT files, extract the text, rewrite it using an LLM, "
+    "and generate an audiobook MP3."
 )
 
+# Global store for generated text
+if "llm_output" not in st.session_state:
+    st.session_state.llm_output = ""
 
-def generate_llm_audiobook_text(text: str, api_key: str) -> str:
-    """
-    Use an LLM (OpenAI) to rewrite the extracted text as audiobook-style narration.
-    """
+
+def llm_rewrite(text, api_key):
     client = OpenAI(api_key=api_key)
 
     prompt = (
-        "You are an expert audiobook narrator. Rewrite the following document text "
-        "into clear, natural, audiobook-style narration. "
-        "Keep all important information, but make it engaging and easy to follow.\n\n"
-        f"Document text:\n{text}"
+        "Rewrite the following document text into a clear, natural, audiobook-style narration. "
+        "Keep all important information.\n\n"
+        f"{text}"
     )
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",  # or the model your mentor specifies
-        messages=[
-            {
-                "role": "system",
-                "content": "You rewrite text into engaging audiobook-style narration.",
-            },
-            {"role": "user", "content": prompt},
-        ],
+    result = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
 
-    return response.choices[0].message.content.strip()
+    return result.choices[0].message.content.strip()
 
-
-# ------------- File Upload & Extraction ------------- #
 
 uploaded_files = st.file_uploader(
     "Upload one or more files",
     type=["pdf", "docx", "txt"],
-    accept_multiple_files=True,
+    accept_multiple_files=True
 )
 
 if uploaded_files:
-    st.subheader("📄 Extracted Text")
-
-    # extract_texts returns ONE big string with headings per file
     extracted_text = extract_texts(uploaded_files)
-    st.text_area("Extracted text preview", extracted_text, height=300)
 
-    # ------------- LLM Audiobook-Style Rewriting ------------- #
-    st.subheader("🧠 LLM Audiobook-style Rewriting")
+    st.subheader("📄 Extracted Text")
+    st.text_area("Preview", extracted_text, height=250)
 
-    api_key = st.text_input(
-        "Enter your OpenAI API key (kept only in this session)", type="password"
-    )
+    st.subheader("🧠 LLM Audiobook Rewriting")
+    api_key = st.text_input("Enter your OpenAI API Key", type="password")
 
-    if st.button("Generate audiobook-style text with LLM"):
+    if st.button("Rewrite using AI"):
         if not api_key:
-            st.error("Please enter your OpenAI API key first.")
-        elif not extracted_text.strip():
-            st.error("Please upload a file so there is text to rewrite.")
+            st.error("Please enter your API key.")
         else:
-            with st.spinner("Calling LLM to rewrite text..."):
+            with st.spinner("Generating audiobook-style content..."):
                 try:
-                    llm_output = generate_llm_audiobook_text(extracted_text, api_key)
-                    st.success("LLM audiobook-style text generated.")
-                    st.text_area(
-                        "LLM-generated audiobook-style text",
-                        llm_output,
-                        height=300,
-                    )
+                    st.session_state.llm_output = llm_rewrite(extracted_text, api_key)
+                    st.success("LLM text ready!")
                 except Exception as e:
-                    st.error(
-                        f"Error while calling the LLM. "
-                        f"Check your API key / internet connection. Details: {e}"
-                    )
+                    st.error(f"LLM Error: {e}")
 
-    # ------------- Audio (Future Work) ------------- #
-    st.subheader("🔊 Audio Generation (Future Work)")
-    st.info(
-        "On this laptop, online text-to-speech (TTS) is unstable, "
-        "so audio generation is disabled to keep the app stable.\n\n"
-        "However, the code structure supports taking the LLM-generated audiobook text "
-        "and sending it to any TTS API in the future."
-    )
+if st.session_state.llm_output:
+    st.subheader("✨ AI-Generated Audiobook Text")
+    st.text_area("Output", st.session_state.llm_output, height=250)
+
+    st.subheader("🔊 Convert to Audio (MP3)")
+    
+    if st.button("Generate MP3"):
+        try:
+            tts = gTTS(st.session_state.llm_output)
+            audio_data = BytesIO()
+            tts.write_to_fp(audio_data)
+            audio_data.seek(0)
+
+            st.audio(audio_data, format="audio/mp3")
+
+            st.download_button(
+                label="Download MP3",
+                data=audio_data,
+                file_name="audiobook.mp3",
+                mime="audio/mp3",
+            )
+            st.success("MP3 generated successfully!")
+        except Exception as e:
+            st.error(f"Audio error: {e}")
 
 else:
-    st.warning("📌 Please upload at least one file to start.")
+    st.info("Upload a file and rewrite text first.")
