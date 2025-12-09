@@ -9,7 +9,8 @@ This project converts documents into clean text and prepares them for audiobook-
 ✔ Upload files: **PDF / DOCX / TXT**  
 ✔ Extract and display clean text from documents  
 ✔ Organized Streamlit UI for easy use  
-✔ use an LLM to rewrite the extracted text into audiobook-style narration
+✔ use an LLM to rewrite the extracted text into audiobook-style narration and LLM requires organization API key for activation
+
 
 ---
 
