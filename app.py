@@ -1,23 +1,33 @@
-
 import streamlit as st
+from io import BytesIO
+from pathlib import Path
 from core.extractor import extract_texts
 
 st.set_page_config(page_title="AI Audiobook Generator", page_icon="🎧")
-st.title("🎧 AI Audiobook Generator — Week 1")
+
+st.title("🎧 AI Audiobook Generator")
+st.write("Upload PDF, DOCX or TXT files and extract text")
 
 uploaded_files = st.file_uploader(
-    "Upload PDF/DOCX/TXT files",
+    "Upload one or more files",
     type=["pdf", "docx", "txt"],
     accept_multiple_files=True
 )
 
 if uploaded_files:
-    st.subheader("Extracted Text Preview")
-    extracted = extract_texts(uploaded_files)
+    st.subheader("📄 Extracted Text")
 
-    for name, text in extracted.items():
-        st.write(f"**{name}**")
-        preview = (text[:2000] + "...") if len(text) > 2000 else text
-        st.code(preview or "[No text extracted]")
+    extracted_text = extract_texts(uploaded_files)
+    st.text_area("Extracted text preview", extracted_text, height=300)
+
+    st.subheader("🔊 Audio Generation")
+    st.info("""
+On this laptop, online text-to-speech (TTS) is unstable,
+so audio generation is disabled to keep the app stable.
+
+However, the code structure supports converting the audiobook text to audio
+using a TTS service (like gTTS or another API) and offering it as a downloadable file.
+    """)
+
 else:
-    st.info("Upload a file to begin.")
+    st.warning("📌 Please upload at least one file.")
