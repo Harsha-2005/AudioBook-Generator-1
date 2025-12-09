@@ -1,35 +1,42 @@
+# 🎧 AI Audiobook Generator – Project
 
-# AI Audiobook Generator — Week 1 Starter
+This project converts documents into clean text and prepares them for audiobook-style output.
 
-## What Week 1 Does
-✅ Upload PDF / DOCX / TXT  
-✅ Extract & show text preview  
-❌ No LLM yet  
-❌ No voice generation yet  
+---
 
-## How to Run
+## 🚀 Features Implemented
 
-### 1) Create a virtual environment
-Windows:
-```
-python -m venv .venv
-.venv\Scripts\activate
-```
+✔ Upload files: **PDF / DOCX / TXT**  
+✔ Extract and display clean text from documents  
+✔ Organized Streamlit UI for easy use  
+✔ Code structured to support future audio generation
 
-Mac/Linux:
-```
-python3 -m venv .venv
-source .venv/bin/activate
-```
+---
 
-### 2) Install dependencies
-```
-pip install -r requirements.txt
-```
+## 🧠 Future Enhancements (Planned)
 
-### 3) Run Streamlit app
-```
-streamlit run app.py
-```
+🔹 Add LLM rewrite feature for audiobook-friendly narration  
+🔹 Add Text-to-Speech (TTS) using an online service API  
+🔹 Add Download button for generated audio files  
 
-Open the link it gives (usually http://localhost:8501)
+> Audio generation using gTTS is disabled on this laptop due to unstable network issues.  
+> But the code already supports connecting any TTS API in the future.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|----------|------------|
+| Frontend UI | Streamlit |
+| Text Extraction | `pdfplumber`, `docx` |
+| Code Language | Python |
+| Version Control | Git + GitHub |
+
+---
+
+## ▶️ How to Run
+
+### 1️⃣ Create Virtual Environment
+```sh
+python -m venv venv
