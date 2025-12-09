@@ -2,3 +2,4 @@ streamlit
 PyPDF2
 pdfplumber
 python-docx
+openai
